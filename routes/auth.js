@@ -3,6 +3,7 @@ var router = express.Router()
 var bcrypt = require("bcrypt")
 var checkValidAuth = require("../validators/auth.js")
 var { validationResult } = require("express-validator")
+var jwt = require("jsonwebtoken")
 
 var userModel = require("../schemas/user.js")
 
@@ -60,9 +61,16 @@ router.post("/login", async function (req, res, next) {
 
   let result = bcrypt.compareSync(password, user.password)
   if (result) {
+    var token = jwt.sign(
+      {
+        id: user._id,
+      },
+      "NNPTUD_S6",
+      { expiresIn: "1d" }
+    )
     res.status(200).send({
       success: true,
-      data: user,
+      data: token,
     })
   } else {
     res.status(404).send({
