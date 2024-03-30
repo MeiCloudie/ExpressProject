@@ -1,6 +1,8 @@
 var express = require("express")
 var router = express.Router()
 // var bcrypt = require("bcrypt")
+var checkValid = require("../validators/user.js")
+var { validationResult } = require("express-validator")
 
 var userModel = require("../schemas/user.js")
 
@@ -45,7 +47,13 @@ router.get("/:id", async function (req, res, next) {
   }
 })
 
-router.post("/add", async function (req, res, next) {
+router.post("/add", checkValid(), async function (req, res, next) {
+  var result = validationResult(req)
+  if (result.errors.length > 0) {
+    res.status(404).send(result.errors)
+    return
+  }
+
   try {
     // var newPass = await bcrypt.hash(req.body.password, 10)
     // var newPass = bcrypt.hashSync(req.body.password, 10)
@@ -58,9 +66,15 @@ router.post("/add", async function (req, res, next) {
       role: req.body.role,
     })
     await newUser.save()
-    res.status(200).send(newUser)
+    res.status(200).send({
+      success: true,
+      data: newUser,
+    })
   } catch (error) {
-    res.status(404).send(error)
+    res.status(404).send({
+      success: false,
+      data: error,
+    })
   }
 })
 
