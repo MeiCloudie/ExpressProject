@@ -68,7 +68,7 @@ router.get("/", async function (req, res, next) {
               (res) => "$" + res
             )
           )
-          console.log(queries[key])
+          // console.log(queries[key])
         }
       }
     }

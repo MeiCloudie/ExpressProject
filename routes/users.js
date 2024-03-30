@@ -1,5 +1,6 @@
 var express = require("express")
 var router = express.Router()
+// var bcrypt = require("bcrypt")
 
 var userModel = require("../schemas/user.js")
 
@@ -45,18 +46,26 @@ router.get("/:id", async function (req, res, next) {
 })
 
 router.post("/add", async function (req, res, next) {
-  var newUser = new userModel({
-    username: req.body.username,
-    password: req.body.password,
-    email: req.body.email,
-    status: req.body.status,
-    role: req.body.role,
-  })
-  await newUser.save()
-  res.status(200).send(newUser)
+  try {
+    // var newPass = await bcrypt.hash(req.body.password, 10)
+    // var newPass = bcrypt.hashSync(req.body.password, 10)
+    var newUser = new userModel({
+      username: req.body.username,
+      password: req.body.password,
+      // password: newPass,
+      email: req.body.email,
+      status: req.body.status,
+      role: req.body.role,
+    })
+    await newUser.save()
+    res.status(200).send(newUser)
+  } catch (error) {
+    res.status(404).send(error)
+  }
 })
 
 router.put("/edit/:id", async function (req, res, next) {
+  //TODO: Chỗ này chưa sửa kịp
   try {
     var user = await userModel.findByIdAndUpdate(req.params.id, req.body, {
       new: true,

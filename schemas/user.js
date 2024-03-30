@@ -1,4 +1,5 @@
 var mongoose = require("mongoose")
+var bcrypt = require("bcrypt")
 
 var userSchema = new mongoose.Schema(
   {
@@ -32,5 +33,10 @@ var userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 )
+//Khong su dung Arrow Function vi phai su dung tu khoa THIS
+userSchema.pre("save", function () {
+  // if(this.isModified("pass"))
+  this.password = bcrypt.hashSync(this.password, 10)
+})
 
 module.exports = new mongoose.model("user", userSchema)
