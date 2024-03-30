@@ -65,7 +65,6 @@ router.post("/add", async function (req, res, next) {
 })
 
 router.put("/edit/:id", async function (req, res, next) {
-  //TODO: Chỗ này chưa sửa kịp
   try {
     var user = await userModel.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
