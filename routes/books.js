@@ -69,7 +69,7 @@ router.get("/", async function (req, res, next) {
   var books = await bookModel
     .find(queries)
     .populate({ path: "author", select: "_id name" })
-    // .lean()
+    .lean()
     .skip((page - 1) * limit)
     .limit(limit)
     .sort(sort)
