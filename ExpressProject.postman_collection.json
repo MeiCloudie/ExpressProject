@@ -156,7 +156,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/api/v1/books?year[gte]=1941",
+							"raw": "http://localhost:3000/api/v1/books?year[gte]=1940&year[lte]=1950",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -170,7 +170,11 @@
 							"query": [
 								{
 									"key": "year[gte]",
-									"value": "1941"
+									"value": "1940"
+								},
+								{
+									"key": "year[lte]",
+									"value": "1950"
 								}
 							]
 						}
