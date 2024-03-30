@@ -41,12 +41,36 @@ router.get("/", async function (req, res, next) {
 
   //http://localhost:3000/api/v1/books?page=1&limit=10&sort=year&name=Book&year[$gte]=1950
   //Phat trien: Tuong lai se config them
-  let arrayString = ["name", "author"]
-  let arrayNumber = ["year"]
+  let stringArray = ["name", "author"]
+  let numberArray = ["year"]
 
   for (const [key, value] of Object.entries(req.query)) {
     if (!exclude.includes(key)) {
-      queries[key] = new RegExp(value.replace(",", "|"), "i")
+      if (stringArray.includes(key)) {
+        queries[key] = new RegExp(value.replace(",", "|"), "i")
+      }
+      //http://localhost:3000/api/v1/books?year[gte]=1941
+      //gte lte
+      if (numberArray.includes(key)) {
+        let string = JSON.stringify(value)
+        let index = string.search(new RegExp("lte|lt|gte|gt", "i"))
+        if (index < 0) {
+          queries[key] = value
+        } else {
+          // queries[key] = JSON.parse(
+          //   string.slice(0, index) + "$" + string.slice(index, string.length)
+          // )
+
+          //http://localhost:3000/api/v1/books?year[gte]=1940&year[lte]=1950
+          queries[key] = JSON.parse(
+            string.replaceAll(
+              new RegExp("lte|lt|gte|gt", "g"),
+              (res) => "$" + res
+            )
+          )
+          console.log(queries[key])
+        }
+      }
     }
   }
   queries.isDeleted = false
