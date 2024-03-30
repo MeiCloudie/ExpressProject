@@ -1,11 +1,11 @@
 var express = require("express")
 var router = express.Router()
 var bcrypt = require("bcrypt")
+var userModel = require("../schemas/user.js")
 var checkValidAuth = require("../validators/auth.js")
 var { validationResult } = require("express-validator")
 var jwt = require("jsonwebtoken")
-
-var userModel = require("../schemas/user.js")
+var protect = require("../middlewares/protectLogin")
 
 router.post("/register", checkValidAuth(), async function (req, res, next) {
   var result = validationResult(req)
@@ -78,6 +78,13 @@ router.post("/login", async function (req, res, next) {
       data: "password sai",
     })
   }
+})
+
+router.get("/me", protect, async function (req, res, next) {
+  res.status(200).send({
+    success: true,
+    data: req.user,
+  })
 })
 
 module.exports = router

@@ -1,40 +1,13 @@
 var express = require("express")
 var router = express.Router()
 // var bcrypt = require("bcrypt")
+var userModel = require("../schemas/user.js")
 var checkValid = require("../validators/user.js")
 var { validationResult } = require("express-validator")
+var protect = require("../middlewares/protectLogin")
 
-var userModel = require("../schemas/user.js")
-
-router.get("/", async function (req, res, next) {
-  let queries = {}
-  let exclude = ["sort", "page", "limit"]
-
-  for (const [key, value] of Object.entries(req.query)) {
-    if (!exclude.includes(key)) {
-      queries[key] = new RegExp(value.replace(",", "|"), "i")
-    }
-  }
-  queries.isDeleted = false
-
-  let limit = req.query.limit ? req.query.limit : 5
-  let page = req.query.page ? req.query.page : 1
-  let sort = {}
-
-  if (req.query.sort) {
-    if (req.query.sort.startsWith("-")) {
-      sort[req.query.sort.substring(1, req.query.sort.length)] = -1
-    } else {
-      sort[req.query.sort] = 1
-    }
-  }
-
-  var users = await userModel
-    .find(queries)
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .sort(sort)
-    .exec()
+router.get("/", protect, async function (req, res, next) {
+  let users = await userModel.find({}).exec()
   res.status(200).send(users)
 })
 
