@@ -1,5 +1,6 @@
 var mongoose = require("mongoose")
 var bcrypt = require("bcrypt")
+var crypto = require("crypto")
 
 var userSchema = new mongoose.Schema(
   {
@@ -26,6 +27,8 @@ var userSchema = new mongoose.Schema(
       type: [String],
       require: true,
     },
+    tokenResetPassword: String,
+    tokenResetPasswordExp: String,
     isDeleted: {
       type: Boolean,
       default: false,
@@ -35,8 +38,19 @@ var userSchema = new mongoose.Schema(
 )
 //Khong su dung Arrow Function vi phai su dung tu khoa THIS
 userSchema.pre("save", function () {
-  // if(this.isModified("pass"))
-  this.password = bcrypt.hashSync(this.password, 10)
+  if (this.isModified("password")) {
+    this.password = bcrypt.hashSync(this.password, 10)
+  }
 })
+
+userSchema.methods.genJWT = function () {
+  return jwt.sign(
+    {
+      id: this._id,
+    },
+    config.JWT_SECRETKEY,
+    { expiresIn: config.JWT_EXP }
+  )
+}
 
 module.exports = new mongoose.model("user", userSchema)

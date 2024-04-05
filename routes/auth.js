@@ -1,28 +1,66 @@
 var express = require("express")
 var router = express.Router()
-var bcrypt = require("bcrypt")
-var userModel = require("../schemas/user.js")
-var checkValidAuth = require("../validators/auth.js")
+var userModel = require("../schemas/user")
+var checkvalid = require("../validators/auth")
 var { validationResult } = require("express-validator")
-var jwt = require("jsonwebtoken")
+var bcrypt = require("bcrypt")
 var protect = require("../middlewares/protectLogin")
+let sendmail = require("../helpers/sendmail")
+let resHandle = require("../helpers/resHandle")
+let config = require("../configs/config")
 
-router.post("/register", checkValidAuth(), async function (req, res, next) {
+router.post("/forgotpassword", async function (req, res, next) {
+  let email = req.body.email
+  let user = await userModel.findOne({ email: email })
+  if (!user) {
+    resHandle(res, false, "email chua ton tai trong he thong")
+    return
+  }
+  let token = user.genResetPassword()
+  await user.save()
+  let url = `http://localhost:3000/api/v1/auth/resetpassword/${token}`
+  try {
+    await sendmail(user.email, url)
+    resHandle(res, true, "gui mail thanh cong")
+  } catch (error) {
+    user.tokenResetPasswordExp = undefined
+    user.tokenResetPassword = undefined
+    await user.save()
+    resHandle(res, false, error)
+  }
+})
+
+router.post("/resetpassword/:token", async function (req, res, next) {
+  let user = await userModel.findOne({
+    tokenResetPassword: req.params.token,
+  })
+  if (!user) {
+    resHandle(res, false, "URL khong hop le")
+    return
+  }
+  if (user.tokenResetPasswordExp > Date.now()) {
+    user.password = req.body.password
+    user.tokenResetPasswordExp = undefined
+    user.tokenResetPassword = undefined
+    await user.save()
+    resHandle(res, true, "doi mat khau thanh cong")
+  } else {
+    resHandle(res, false, "URL khong hop le")
+    return
+  }
+})
+
+router.post("/register", checkvalid(), async function (req, res, next) {
   var result = validationResult(req)
   if (result.errors.length > 0) {
     res.status(404).send(result.errors)
     return
   }
-
   try {
-    // var newPass = await bcrypt.hash(req.body.password, 10)
-    // var newPass = bcrypt.hashSync(req.body.password, 10)
     var newUser = new userModel({
       username: req.body.username,
       password: req.body.password,
-      // password: newPass,
       email: req.body.email,
-      status: req.body.status,
       role: ["USER"],
     })
     await newUser.save()
@@ -37,67 +75,41 @@ router.post("/register", checkValidAuth(), async function (req, res, next) {
     })
   }
 })
-
 router.post("/login", async function (req, res, next) {
   let password = req.body.password
   let username = req.body.username
-
   if (!password || !username) {
-    res.status(404).send({
-      success: false,
-      data: "username va password khong duoc de trong",
-    })
+    resHandle(res, false, "username va password khong duoc de trong")
     return
   }
-
   var user = await userModel.findOne({ username: username })
   if (!user) {
-    res.status(404).send({
-      success: false,
-      data: "username khong ton tai",
-    })
+    resHandle(res, false, "username khong ton tai")
     return
   }
-
-  let result = await bcrypt.compare(password, user.password)
+  let result = bcrypt.compareSync(password, user.password)
   if (result) {
-    var tokenUser = jwt.sign(
-      {
-        id: user._id,
-      },
-      "NNPTUD_S6",
-      { expiresIn: "1d" }
-    )
+    var tokenUser = user.genJWT()
+    f
     res
       .status(200)
       .cookie("token", tokenUser, {
-        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        expires: new Date(Date.now() + config.COOKIES_EXP_HOUR * 3600 * 1000),
         httpOnly: true,
       })
       .send({
-        success: true,
+        success: false,
         data: tokenUser,
       })
   } else {
-    res.status(404).send({
-      success: false,
-      data: "password sai",
-    })
+    resHandle(res, false, "password sai")
   }
 })
-
-router.post("/logout", protect, async function (req, res, next) {
-  res.status(200).cookie("token", null).send({
-    success: true,
-    data: "dang xuat thanh cong",
-  })
-})
-
 router.get("/me", protect, async function (req, res, next) {
-  res.status(200).send({
-    success: true,
-    data: req.user,
-  })
+  resHandle(res, true, req.user)
+})
+router.post("/logout", async function (req, res, next) {
+  resHandle(res, true, "dang xuat thanh cong")
 })
 
 module.exports = router
