@@ -23,7 +23,7 @@ router.post("/register", checkValidAuth(), async function (req, res, next) {
       // password: newPass,
       email: req.body.email,
       status: req.body.status,
-      role: req.body.role,
+      role: ["USER"],
     })
     await newUser.save()
     res.status(200).send({
@@ -59,25 +59,38 @@ router.post("/login", async function (req, res, next) {
     return
   }
 
-  let result = bcrypt.compareSync(password, user.password)
+  let result = await bcrypt.compare(password, user.password)
   if (result) {
-    var token = jwt.sign(
+    var tokenUser = jwt.sign(
       {
         id: user._id,
       },
       "NNPTUD_S6",
       { expiresIn: "1d" }
     )
-    res.status(200).send({
-      success: true,
-      data: token,
-    })
+    res
+      .status(200)
+      .cookie("token", tokenUser, {
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        httpOnly: true,
+      })
+      .send({
+        success: true,
+        data: tokenUser,
+      })
   } else {
     res.status(404).send({
       success: false,
       data: "password sai",
     })
   }
+})
+
+router.post("/logout", protect, async function (req, res, next) {
+  res.status(200).cookie("token", null).send({
+    success: true,
+    data: "dang xuat thanh cong",
+  })
 })
 
 router.get("/me", protect, async function (req, res, next) {

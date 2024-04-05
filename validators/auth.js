@@ -18,13 +18,13 @@ let options = {
 let notifies = {
   NOTI_USERNAME: "username phai dai tu %d ki tu den %d ki tu",
   NOTI_PASSWORD:
-    "password phai dai toi thieu %d ki tu, trong do co it nhat %d ki tu so, %d ki tu thuong, %d ki tu hoa",
+    "password phai dai toi thieu %d ki tu, trong do co it nhat %d ki tu so, %d ki tu thuong, %d ki tu in hoa, %d ki tu dac biet",
   NOTI_EMAIL: "email phai dung dinh dang",
 }
 
 module.exports = function () {
   return [
-    check("email", util.format(notifies.NOTI_EMAIL)).isEmail,
+    check("email", notifies.NOTI_EMAIL).isEmail(),
     check(
       "password",
       util.format(

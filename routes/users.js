@@ -6,10 +6,30 @@ var checkValid = require("../validators/user.js")
 var { validationResult } = require("express-validator")
 var protect = require("../middlewares/protectLogin")
 
-router.get("/", protect, async function (req, res, next) {
-  let users = await userModel.find({}).exec()
-  res.status(200).send(users)
-})
+router.get(
+  "/",
+  protect,
+  function (req, res, next) {
+    let requireRoles = ["ADMIN", "MODIFIER"].map((e) => e.toLowerCase())
+    let userRoles = req.user.role.map((e) => e.toLowerCase()) //["ADMIN", "MODIFIER"]
+
+    //sử dụng các hàm built in của mảng để tìm phần tử chung của 2 mảng
+    //requireRoles userRoles
+    //KHÔNG PHÂN BIỆT HOA THƯỜNG
+    //dùng some hoặc filter
+    let result = requireRoles.filter((e) => userRoles.includes(e))
+    if (result.length > 0) {
+      next()
+    } else {
+      res.status(403).send("ban ko co quyen")
+    }
+    console.log(result)
+  },
+  async function (req, res, next) {
+    let users = await userModel.find({}).exec()
+    res.status(200).send(users)
+  }
+)
 
 router.get("/:id", async function (req, res, next) {
   try {
