@@ -4,7 +4,7 @@ var userModel = require("../schemas/user")
 var checkvalid = require("../validators/user")
 var { validationResult } = require("express-validator")
 var protectLogin = require("../middlewares/protectLogin")
-var protectRole = require("../middlewares/protectRole")
+var protectRole = require("../middlewares/protectrRole")
 require("express-async-errors")
 
 router.get(
