@@ -1,8 +1,10 @@
 //localhost:3000/api/v1/books
 var express = require("express")
 var router = express.Router()
+require("express-async-errors")
 
 var bookModel = require("../schemas/book.js")
+const ValidationError = require("../Errors/validationError.js")
 
 // function GenID(num) {
 //   let source = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -136,14 +138,15 @@ router.get("/:id", async function (req, res, next) {
   // let book = books.find((book) => book.id == req.params.id)
   // let book = await bookModel.find({ _id: req.params.id }).exec()
   // let book = await bookModel.findById(req.params.id).exec()
+  throw new ValidationError("heheh")
 
-  try {
-    // let book = await bookModel.find({ _id: req.params.id }).exec()
-    let book = await bookModel.findById(req.params.id).exec()
-    res.status(200).send(book)
-  } catch (error) {
-    res.status(404).send(error)
-  }
+  // try {
+  //   // let book = await bookModel.find({ _id: req.params.id }).exec()
+  //   let book = await bookModel.findById(req.params.id).exec()
+  //   res.status(200).send(book)
+  // } catch (error) {
+  //   res.status(404).send(error)
+  // }
 
   //   for (let index = 0; index < books.length; index++) {
   //     const element = books[index]

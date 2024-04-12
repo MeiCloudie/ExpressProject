@@ -49,7 +49,7 @@ app.use(function (err, req, res, next) {
   // res.render("error")
   res.send({
     success: false,
-    data: "URL not found",
+    data: err.message,
   })
 })
 
